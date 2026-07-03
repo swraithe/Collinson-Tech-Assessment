@@ -48,11 +48,12 @@ npm test
 - **Geocoding:** best Open-Meteo match (highest population); optional `countryCode` for disambiguation
 - **Freshness:** 6-hour TTL; stale data returned with `isStale: true` if provider fails but cache exists
 - **Surfing (v1):** weather proxy (wind/rain) — marine API deferred to v2 plug-in
-- **Skiing (v1):** city-level temp/snowfall/snow depth — not resort elevation or piste conditions
+- **Skiing (v1):** city-level temp and snowfall — snow depth cut (Open-Meteo daily API returns 400); not resort elevation or piste conditions
 - **Indoor sightseeing:** higher when outdoor conditions are poor (+ baseline availability)
 - **Timezone:** forecast window uses destination timezone (`timezone=auto`)
 - **Storage:** SQLite for take-home; schema is Postgres-compatible for production migration
 - **Idempotency:** upserts on location and scores; refresh lock prevents cache stampede
 - **No frontend, no auth** — backend exercise scope only
+- **Production gaps:** see [`NOTES.md`](NOTES.md) — multi-instance locking, retention, rate limiting, CI
 
 See [`NOTES.md`](NOTES.md) for raw decision log and cuts.
