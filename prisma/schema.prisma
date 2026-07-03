@@ -1,0 +1,80 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Location {
+  id         String             @id @default(cuid())
+  queryKey   String             @unique
+  name       String
+  country    String
+  admin1     String?
+  latitude   Float
+  longitude  Float
+  timezone   String
+  geocodedAt DateTime           @default(now())
+  snapshots  ForecastSnapshot[]
+  scores     ActivityScore[]
+
+  @@index([queryKey])
+}
+
+model ForecastSnapshot {
+  id              String         @id @default(cuid())
+  locationId      String
+  location        Location       @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  fetchedAt       DateTime       @default(now())
+  expiresAt       DateTime
+  rawForecast     String
+  providerVersion String         @default("open-meteo-v1")
+  daily           WeatherDaily[]
+  scores          ActivityScore[]
+
+  @@unique([locationId, fetchedAt])
+  @@index([locationId, expiresAt])
+}
+
+model WeatherDaily {
+  id           String           @id @default(cuid())
+  snapshotId   String
+  snapshot     ForecastSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  forecastDate DateTime
+  tempMin      Float?
+  tempMax      Float?
+  precipMm     Float?
+  snowfallCm   Float?
+  windMaxKmh   Float?
+  sunshineSec  Float?
+  weatherCode  Int?
+  snowDepthM   Float?
+
+  @@unique([snapshotId, forecastDate])
+  @@index([forecastDate])
+}
+
+model ActivityScore {
+  id             String           @id @default(cuid())
+  snapshotId     String
+  snapshot       ForecastSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  locationId     String
+  location       Location         @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  forecastDate   DateTime
+  activity       String
+  scoringVersion String
+  score          Float
+  factors        String
+
+  @@unique([snapshotId, forecastDate, activity, scoringVersion])
+  @@index([locationId, scoringVersion])
+}
+
+model RefreshLock {
+  locationId String   @id
+  lockedAt   DateTime @default(now())
+  expiresAt  DateTime
+}
