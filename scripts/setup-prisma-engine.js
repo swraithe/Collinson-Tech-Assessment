@@ -1,7 +1,7 @@
 import { copyFileSync, existsSync, mkdirSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
-function findLibQueryEngine(dir: string): string | null {
+function findLibQueryEngine(dir) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const full = join(dir, entry.name);
     if (entry.isDirectory()) {
@@ -14,7 +14,12 @@ function findLibQueryEngine(dir: string): string | null {
   return null;
 }
 
-const engine = findLibQueryEngine(join(process.cwd(), "node_modules", "@prisma", "engines"));
+const enginesRoot = join(process.cwd(), "node_modules", "@prisma", "engines");
+if (!existsSync(enginesRoot)) {
+  process.exit(0);
+}
+
+const engine = findLibQueryEngine(enginesRoot);
 const targetDir = join(process.cwd(), "node_modules", ".prisma", "client");
 const target = join(targetDir, "query_engine-windows.dll.node");
 
